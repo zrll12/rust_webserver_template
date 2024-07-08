@@ -1,6 +1,13 @@
+use axum::extract::DefaultBodyLimit;
+use axum_server::tls_rustls::RustlsConfig;
 use lazy_static::lazy_static;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
-use tracing::log::LevelFilter;
+use tower_http::catch_panic::CatchPanicLayer;
+use tower_http::classify::StatusInRangeAsFailures;
+use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
+use tracing::{debug, info};
+use tracing::log::{LevelFilter, warn};
 use tracing_appender::non_blocking;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::{EnvFilter, fmt, Registry};
@@ -12,6 +19,7 @@ use crate::config::core::{CoreConfig};
 use crate::config::get_config;
 
 mod config;
+mod controller;
 
 lazy_static! {
     static ref CORE_CONFIG: CoreConfig = get_config("core");
@@ -51,4 +59,35 @@ async fn main() {
         .init();
 
     Migrator::up(&*DATABASE, None).await.unwrap();
+    
+    let app = controller::all_routers()
+        .layer(TraceLayer::new(
+            StatusInRangeAsFailures::new(400..=599).into_make_classifier()
+        ))
+        .layer(DefaultBodyLimit::max(
+            CORE_CONFIG.max_body_size * 1024 * 1024,
+        ))
+        .layer(CorsLayer::permissive())
+        .layer(CatchPanicLayer::new());
+
+    let addr = CORE_CONFIG.server_addr.parse().unwrap();
+    info!("Listening: {addr}");
+
+    if CORE_CONFIG.tls {
+        debug!("HTTPS enabled.");
+        let tls_config =
+            RustlsConfig::from_pem_file(&CORE_CONFIG.ssl_cert, &CORE_CONFIG.ssl_key)
+                .await
+                .unwrap();
+        axum_server::bind_rustls(addr, tls_config)
+            .serve(app.into_make_service())
+            .await
+            .unwrap();
+    } else {
+        warn!("HTTPS disabled.");
+        axum_server::bind(addr)
+            .serve(app.into_make_service())
+            .await
+            .unwrap();
+    }
 }

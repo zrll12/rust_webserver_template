@@ -15,6 +15,8 @@ pub struct CoreConfig {
     #[serde_inline_default(String::from("./cert.crt"))]
     pub ssl_cert: String,
     #[serde_inline_default(String::from("./private.key"))]
-    pub ssl_key: String
+    pub ssl_key: String,
+    #[serde_inline_default(2)]
+    pub max_body_size: usize,
 }
 
