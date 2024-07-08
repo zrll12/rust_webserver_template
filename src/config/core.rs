@@ -3,9 +3,11 @@ use serde_inline_default::serde_inline_default;
 
 #[serde_inline_default]
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ConnectionConfig {
+pub struct CoreConfig {
     #[serde_inline_default(String::from("0.0.0.0:7890"))]
     pub server_addr: String,
+    #[serde_inline_default(String::from("info"))]
+    pub trace_level: String,
     #[serde_inline_default(String::from("postgresql://root:root@127.0.0.1:5432/test"))]
     pub db_uri: String,
     #[serde_inline_default(false)]

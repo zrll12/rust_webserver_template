@@ -30,6 +30,7 @@ tokio = "1.38.0"
 #database
 migration = {path = "migration"}
 sea-orm = { version = "0.12.15", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
+futures = "0.3.30"
 
 
 [build-dependencies]

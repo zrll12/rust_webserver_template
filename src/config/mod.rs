@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
-pub mod connection;
+pub mod core;
 
 pub fn get_config<T>(name: &str) -> T
 where T: for<'a> Deserialize<'a> + Serialize
