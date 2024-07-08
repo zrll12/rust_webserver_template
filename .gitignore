@@ -1,5 +1,7 @@
 /target
 /migration/target/
+/config/
+/logs/
 
 #idea
 /.idea/.gitignore
