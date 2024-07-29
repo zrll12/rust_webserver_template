@@ -18,5 +18,9 @@ pub struct CoreConfig {
     pub ssl_key: String,
     #[serde_inline_default(2)]
     pub max_body_size: usize,
+    #[serde_inline_default(vec!["http://localhost:3000".into()])]
+    pub origins: Vec<String>,
+    #[serde_inline_default(true)]
+    pub allow_credentials: bool,
 }
 
