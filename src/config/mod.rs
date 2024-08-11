@@ -17,8 +17,9 @@ where T: for<'a> Deserialize<'a> + Serialize
         .read(true)
         .write(true)
         .create(true)
+        .truncate(false)
         .open(&file_name)
-        .expect(format!("Cannot open {}", &file_name).as_str());
+        .unwrap_or_else(|_| panic!("Cannot open {}", &file_name));
     file.read_to_string(&mut raw_config).unwrap();
 
     let config: T = toml::from_str(&raw_config).unwrap();
@@ -64,6 +65,6 @@ where T: Serialize
         .write(true)
         .truncate(true)
         .open(&file_name)
-        .expect(format!("Cannot open {}", &file_name).as_str());
+        .unwrap_or_else(|_| panic!("Cannot open {}", &file_name));
     file.write_all(document.trim_end().as_bytes()).unwrap();
 }
