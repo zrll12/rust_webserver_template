@@ -2,38 +2,38 @@
 name = "{{project-name}}"
 description = "{{project-description}}"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [workspace]
 members = [".", "migration"]
 
 [dependencies]
 #tracing
-tracing = "0.1.40"
-tracing-subscriber = { version = "0.3.18", features = ["env-filter", "chrono"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "chrono"] }
 tracing-appender = "0.2.3"
 
 #web
-axum = { version = "0.7.5", features = ["multipart"] }
-tower-http = { version = "0.5.2", features = ["catch-panic", "trace", "cors", "sensitive-headers"] }
-axum-server = { version = "0.6.0", features = ["tls-rustls"] }
+axum = { version = "0.8.4", features = ["multipart"] }
+tower-http = { version = "0.6.3", features = ["catch-panic", "trace", "cors", "sensitive-headers"] }
+axum-server = { version = "0.7.2", features = ["tls-rustls"] }
 
 #serde
-serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.121"
-serde-inline-default = "0.2.0"
-toml = "0.8.16"
-
-#tools
-lazy_static = "1.5.0"
-tokio = "1.39.2"
-diff = "0.1.13"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+serde-inline-default = "0.2.3"
+toml = "0.8.22"
 
 #database
 migration = {path = "migration"}
-sea-orm = { version = "0.12.15", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
-futures = "0.3.30"
+sea-orm = { version = "1.1.11", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
+
+#tools
+lazy_static = "1.5.0"
+tokio = "1.45.0"
+diff = "0.1.13"
+futures = "0.3.31"
 
 
 [build-dependencies]
-shadow-rs = "0.30.0"
+shadow-rs = "1.1.1"
