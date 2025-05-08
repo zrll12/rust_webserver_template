@@ -1,2 +1,6 @@
 [template]
 cargo_generate_version = ">=0.10.0"
+
+[placeholders.project-description]
+type = "string"
+prompt = "Project description"
