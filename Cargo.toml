@@ -33,7 +33,8 @@ lazy_static = "1.5.0"
 tokio = "1.45.0"
 diff = "0.1.13"
 futures = "0.3.31"
+shadow-rs = "1.2.0"
 
 
 [build-dependencies]
-shadow-rs = "1.1.1"
+shadow-rs = "1.2.0"
