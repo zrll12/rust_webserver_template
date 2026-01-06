@@ -1,6 +1,7 @@
 use axum::Router;
 use axum::routing::get;
 use shadow_rs::shadow;
+use serde::Serialize;
 
 pub fn all_routers() -> Router {
     Router::new()

@@ -1,8 +1,9 @@
 use axum::extract::DefaultBodyLimit;
 use axum::http::HeaderValue;
 use axum_server::tls_rustls::RustlsConfig;
-use lazy_static::lazy_static;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
+use std::net::SocketAddr;
+use std::sync::LazyLock;
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::cors::CorsLayer;
@@ -22,17 +23,18 @@ use crate::config::get_config;
 mod config;
 mod controller;
 
-lazy_static! {
-    static ref CORE_CONFIG: CoreConfig = get_config("core");
-    static ref DATABASE: DatabaseConnection = {
-        let mut opt = ConnectOptions::new(&CORE_CONFIG.db_uri);
-        opt.sqlx_logging(true);
-        opt.sqlx_logging_level(LevelFilter::Info);
-        futures::executor::block_on(Database::connect(opt)).unwrap_or_else(|e| {
-            panic!("Failed to connect to database '{}': {}", CORE_CONFIG.db_uri, e)
-        })
-    };
-}
+static CORE_CONFIG: LazyLock<CoreConfig> = LazyLock::new(|| get_config("core"));
+static DATABASE: LazyLock<DatabaseConnection> = LazyLock::new(|| {
+    let mut opt = ConnectOptions::new(&CORE_CONFIG.db_uri);
+    opt.sqlx_logging(true);
+    opt.sqlx_logging_level(LevelFilter::Info);
+    futures::executor::block_on(Database::connect(opt)).unwrap_or_else(|e| {
+        panic!(
+            "Failed to connect to database '{}': {}",
+            CORE_CONFIG.db_uri, e
+        )
+    })
+});
 
 #[tokio::main]
 async fn main() {
@@ -72,7 +74,7 @@ async fn main() {
         .layer(CorsLayer::very_permissive().allow_origin(origins).allow_credentials(CORE_CONFIG.allow_credentials))
         .layer(CatchPanicLayer::new());
 
-    let addr = CORE_CONFIG.server_addr.parse().unwrap();
+    let addr: SocketAddr = CORE_CONFIG.server_addr.parse().unwrap();
     info!("Listening: {addr}");
 
     if CORE_CONFIG.tls {
