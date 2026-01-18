@@ -43,8 +43,7 @@ async fn main() {
     let file_appender = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
         .filename_suffix("log")
-        .filename_prefix("logs/")
-        .build("")
+        .build("logs")
         .unwrap();
     let (non_blocking_appender, _guard) = non_blocking(file_appender);
 
