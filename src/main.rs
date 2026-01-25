@@ -3,7 +3,6 @@ use axum::http::HeaderValue;
 use axum_server::tls_rustls::RustlsConfig;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::net::SocketAddr;
-use std::sync::LazyLock;
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::cors::CorsLayer;
@@ -22,24 +21,40 @@ use crate::config::get_config;
 
 mod config;
 mod controller;
+mod error;
 
-static CORE_CONFIG: LazyLock<CoreConfig> = LazyLock::new(|| get_config("core"));
-static DATABASE: LazyLock<DatabaseConnection> = LazyLock::new(|| {
-    let mut opt = ConnectOptions::new(&CORE_CONFIG.db_uri);
-    opt.sqlx_logging(true);
-    opt.sqlx_logging_level(LevelFilter::Info);
-    futures::executor::block_on(Database::connect(opt)).unwrap_or_else(|e| {
-        panic!(
-            "Failed to connect to database '{}': {}",
-            CORE_CONFIG.db_uri, e
-        )
-    })
-});
+struct AppState {
+    core_config: CoreConfig,
+    db: DatabaseConnection,
+}
+
+impl AppState {
+    pub fn new() -> Self {
+        let core_config: CoreConfig = get_config("core");
+
+        
+        let mut opt = ConnectOptions::new(&core_config.db_uri);
+        opt.sqlx_logging(true);
+        opt.sqlx_logging_level(LevelFilter::Info);
+        
+        let db: DatabaseConnection = futures::executor::block_on(Database::connect(opt))
+            .unwrap_or_else(|e| {
+                panic!(
+                    "Failed to connect to database '{}': {}",
+                    core_config.db_uri, e
+                )
+            });
+        
+        Self { core_config, db }
+    }
+}
 
 #[tokio::main]
 async fn main() {
+    let app_state = AppState::new();
+    
     let env_filter =
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&CORE_CONFIG.trace_level));
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&app_state.core_config.trace_level));
     let file_appender = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
         .filename_suffix("log")
@@ -60,26 +75,26 @@ async fn main() {
         .with(file_layer)
         .init();
 
-    Migrator::up(&*DATABASE, None).await.unwrap();
+    Migrator::up(&app_state.db, None).await.unwrap();
 
-    let origins = CORE_CONFIG.origins.clone().iter().map(|x| x.parse().unwrap()).collect::<Vec<HeaderValue>>();
+    let origins = app_state.core_config.origins.clone().iter().map(|x| x.parse().unwrap()).collect::<Vec<HeaderValue>>();
     let app = controller::all_routers()
         .layer(TraceLayer::new(
             StatusInRangeAsFailures::new(400..=599).into_make_classifier()
         ))
         .layer(DefaultBodyLimit::max(
-            CORE_CONFIG.max_body_size * 1024 * 1024,
+            app_state.core_config.max_body_size * 1024 * 1024,
         ))
-        .layer(CorsLayer::very_permissive().allow_origin(origins).allow_credentials(CORE_CONFIG.allow_credentials))
+        .layer(CorsLayer::very_permissive().allow_origin(origins).allow_credentials(app_state.core_config.allow_credentials))
         .layer(CatchPanicLayer::new());
 
-    let addr: SocketAddr = CORE_CONFIG.server_addr.parse().unwrap();
+    let addr: SocketAddr = app_state.core_config.server_addr.parse().unwrap();
     info!("Listening: {addr}");
 
-    if CORE_CONFIG.tls {
+    if app_state.core_config.tls {
         debug!("HTTPS enabled.");
         let tls_config =
-            RustlsConfig::from_pem_file(&CORE_CONFIG.ssl_cert, &CORE_CONFIG.ssl_key)
+            RustlsConfig::from_pem_file(&app_state.core_config.ssl_cert, &app_state.core_config.ssl_key)
                 .await
                 .unwrap();
         axum_server::bind_rustls(addr, tls_config)

@@ -1,13 +1,13 @@
-use std::fs::{create_dir_all, OpenOptions};
+use std::fs::{OpenOptions, create_dir_all};
 use std::io::{Read, Write};
 
 use serde::{Deserialize, Serialize};
-use tracing::info;
 
 pub mod core;
 
 pub fn get_config<T>(name: &str) -> T
-where T: for<'a> Deserialize<'a> + Serialize
+where
+    T: for<'a> Deserialize<'a> + Serialize,
 {
     let file_name = format!("config/{}.toml", name);
     let mut raw_config = String::new();
@@ -24,14 +24,13 @@ where T: for<'a> Deserialize<'a> + Serialize
 
     let config: T = toml::from_str(&raw_config).unwrap();
     save_changes(name, &raw_config, &config);
-    
-    info!("Config loaded: {}", &file_name);
 
     config
 }
 
 pub fn save_changes<T>(name: &str, old_config: &str, config: &T)
-where T: Serialize
+where
+    T: Serialize,
 {
     let file_name = format!("config/{}.toml", name);
     let new_config = toml::to_string_pretty(config).unwrap();
@@ -47,17 +46,17 @@ where T: Serialize
                     document.push('\n');
                     continue;
                 }
-            },
+            }
             diff::Result::Both(l, _) => {
                 document.push_str(l);
                 document.push('\n');
                 continue;
-            },
+            }
             diff::Result::Right(r) => {
                 document.push_str(r);
                 document.push('\n');
                 continue;
-            },
+            }
         }
     }
 
