@@ -18,6 +18,10 @@ use tracing_subscriber::{EnvFilter, Registry, fmt};
 
 mod modules;
 
+/// 启动时构建一次，序列化为 JSON 字符串后存入 OnceLock，运行期直接 clone Arc<str>。
+#[cfg(feature = "openapi")]
+static OPENAPI_JSON: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
 #[tokio::main]
 async fn main() {
     let state = ws_core::state::AppState::new();
@@ -56,14 +60,49 @@ async fn main() {
     let module_list = modules::all_modules();
     for m in &module_list {
         m.init(&state)
-            .await
             .unwrap_or_else(|e| panic!("{} init failed: {}", m.name(), e));
     }
 
     // 组装路由：每个模块挂载到 /<name>
-    let router = module_list.iter().fold(Router::new(), |r, m| {
+    #[allow(unused_mut)]
+    let mut router = module_list.iter().fold(Router::new(), |r, m| {
         r.nest(&format!("/{}", m.name()), m.routes())
     });
+
+    // openapi feature：构建文档并挂载端点（仅一次序列化，运行期零分配）
+    #[cfg(feature = "openapi")]
+    {
+        use utoipa::openapi::InfoBuilder;
+        use axum::routing::get;
+        use axum::response::IntoResponse;
+
+        let info = InfoBuilder::new()
+            .title(env!("CARGO_PKG_NAME"))
+            .version(env!("CARGO_PKG_VERSION"))
+            .build();
+        let openapi = ws_core::openapi::merge_modules(&module_list, info);
+        let json = openapi.to_json().expect("OpenAPI serialization failed");
+        let json_str: &'static str = OPENAPI_JSON.get_or_init(|| json);
+
+        router = router.route(
+            "/openapi.json",
+            get(move || async move { (
+                [(axum::http::header::CONTENT_TYPE, "application/json")],
+                json_str,
+            ).into_response() }),
+        );
+
+        info!("OpenAPI spec available at /openapi.json");
+
+        #[cfg(feature = "swagger-ui")]
+        {
+            use utoipa_swagger_ui::SwaggerUi;
+            router = router.merge(
+                SwaggerUi::new("/swagger-ui").url("/openapi.json", utoipa::openapi::OpenApi::default()),
+            );
+            info!("Swagger UI available at /swagger-ui");
+        }
+    }
 
     let origins = state
         .core_config

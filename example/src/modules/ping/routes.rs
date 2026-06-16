@@ -8,7 +8,14 @@ pub fn router() -> Router<AppState> {
     Router::new().route("/", get(ping))
 }
 
-async fn ping() -> String {
+#[cfg_attr(feature = "openapi", utoipa::path(
+    get,
+    path = "/ping",
+    responses(
+        (status = 200, description = "Build info", body = Pong)
+    )
+))]
+pub(super) async fn ping() -> String {
     shadow!(build);
 
     let pong = Pong {
@@ -22,8 +29,9 @@ async fn ping() -> String {
     serde_json::to_string(&pong).unwrap()
 }
 
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[derive(Serialize)]
-struct Pong {
+pub(super) struct Pong {
     commit: String,
     branch: String,
     date: String,

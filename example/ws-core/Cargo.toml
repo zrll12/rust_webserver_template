@@ -3,6 +3,10 @@ name = "ws-core"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+openapi = ["dep:utoipa"]
+swagger-ui = ["openapi", "dep:utoipa-swagger-ui"]
+
 [dependencies]
 axum = { version = "0.8.8" }
 sea-orm = { version = "2.0.0-rc.40", features = [
@@ -20,3 +24,7 @@ thiserror = "2.0"
 tracing = "0.1"
 futures = "0.3"
 diff = "0.1"
+
+#openapi (optional)
+utoipa = { version = "5", features = ["axum_extras"], optional = true }
+utoipa-swagger-ui = { version = "9", features = ["axum"], optional = true }

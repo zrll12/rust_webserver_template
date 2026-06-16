@@ -1,7 +1,5 @@
-use std::future::Future;
-use std::pin::Pin;
 use axum::Router;
-use ws_core::{error::AppError, module::AppModule, state::AppState};
+use ws_core::{module::AppModule, state::AppState};
 
 pub mod entity;
 pub mod error;
@@ -18,10 +16,5 @@ impl AppModule for CommentModule {
         routes::router()
     }
 
-    fn init<'a>(
-        &'a self,
-        _state: &'a AppState,
-    ) -> Pin<Box<dyn Future<Output = Result<(), AppError>> + Send + 'a>> {
-        Box::pin(async { Ok(()) })
-    }
+
 }

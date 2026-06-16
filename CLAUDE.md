@@ -31,15 +31,13 @@
 pub trait AppModule: Send + Sync + 'static {
     fn name(&self) -> &'static str;        // 模块名，同时是路由前缀
     fn routes(&self) -> Router<AppState>;  // 模块路由
-    fn init<'a>(&'a self, _state: &'a AppState)
-        -> Pin<Box<dyn Future<Output = Result<(), AppError>> + Send + 'a>>
-    {
-        Box::pin(async { Ok(()) })  // 默认空实现
+    fn init(&self, _state: &AppState) -> Result<(), AppError> {
+        Ok(())  // 默认空实现
     }
 }
 ```
 
-不使用 `async_trait`，通过手动 `Pin<Box<dyn Future>>` 保持 dyn-compatible。
+`init` 是同步的，需要异步操作时用 `futures::executor::block_on(...)` 包裹。
 
 ### AppState（`ws-core/src/state.rs`）
 
@@ -90,11 +88,9 @@ src/modules/<name>/
 
 ```rust
 // init 中注册（mod.rs）
-fn init<'a>(&'a self, state: &'a AppState) -> Pin<Box<dyn Future<Output = Result<(), AppError>> + Send + 'a>> {
-    Box::pin(async move {
-        state.set_module(MyService::new(state.db.clone()));
-        Ok(())
-    })
+fn init(&self, state: &AppState) -> Result<(), AppError> {
+    state.set_module(MyService::new(state.db.clone()));
+    Ok(())
 }
 
 // handler 中消费（routes.rs）

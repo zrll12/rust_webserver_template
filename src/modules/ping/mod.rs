@@ -14,4 +14,15 @@ impl AppModule for PingModule {
     fn routes(&self) -> Router<AppState> {
         routes::router()
     }
+
+    #[cfg(feature = "openapi")]
+    fn openapi(&self) -> utoipa::openapi::OpenApi {
+        use utoipa::OpenApi;
+
+        #[derive(OpenApi)]
+        #[openapi(paths(routes::ping), components(schemas(routes::Pong)))]
+        struct PingDoc;
+
+        PingDoc::openapi()
+    }
 }
