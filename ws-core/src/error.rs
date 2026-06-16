@@ -18,7 +18,7 @@ pub enum AppError {
 }
 
 impl AppError {
-    fn get_status_code(&self) -> StatusCode {
+    fn status_code(&self) -> StatusCode {
         match self {
             AppError::InvalidToken => StatusCode::UNAUTHORIZED,
             AppError::PermissionDenied => StatusCode::FORBIDDEN,
@@ -32,6 +32,6 @@ impl AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        (self.get_status_code(), self.to_string()).into_response()
+        (self.status_code(), self.to_string()).into_response()
     }
 }

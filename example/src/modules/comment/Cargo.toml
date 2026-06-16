@@ -1,0 +1,33 @@
+[package]
+name = "comment-module"
+version = "0.1.0"
+edition = "2024"
+
+# 局限说明：
+# 本 crate 通过 path 依赖主项目（example）中的 ws-core 层。
+# 若 ws-core 将来单独发布到 crates.io，只需替换为版本依赖即可独立分发。
+# 在同一 workspace 下使用时，编译缓存是共享的，无需重复编译 ws-core。
+#
+# 注意：comment 接口未做 token 鉴权，这是演示的有意为之。
+# 原因：TokenInfo 定义在主 crate 的 user 模块中，独立 crate 若依赖主 crate 会造成循环依赖。
+# 真实项目中，如果模块间需要共享业务类型（如 TokenInfo），通常有两种解法：
+#   1. 将共享类型抽取为单独的 crate（如 user-types），双方都依赖它。
+#   2. 将需要鉴权的模块也独立成 crate，统一依赖同一个 auth crate。
+# 这两种方案都意味着相关模块也要独立成 crate，就不会出现循环依赖。
+
+[dependencies]
+ws-core = { path = "../../../ws-core" }
+
+axum = { version = "0.8.8" }
+sea-orm = { version = "2.0.0-rc.40", features = [
+    "macros",
+    "sqlx-postgres",
+    "runtime-tokio-rustls",
+    "schema-sync",
+    "entity-registry",
+] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+tokio = { version = "1", features = ["full"] }
+chrono = "0.4"

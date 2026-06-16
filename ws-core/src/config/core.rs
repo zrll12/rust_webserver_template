@@ -23,4 +23,3 @@ pub struct CoreConfig {
     #[serde_inline_default(true)]
     pub allow_credentials: bool,
 }
-

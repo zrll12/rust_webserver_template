@@ -40,8 +40,7 @@ where
     for diff in diff::lines(old_config, &new_config) {
         match diff {
             diff::Result::Left(l) => {
-                if l.trim_start().starts_with("#") || l.is_empty() {
-                    // keep comments or empty lines
+                if l.trim_start().starts_with('#') || l.is_empty() {
                     document.push_str(l);
                     document.push('\n');
                     continue;

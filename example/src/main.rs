@@ -47,7 +47,7 @@ async fn main() {
     // schema-sync: 根据 entity 定义自动建表/加列
     state
         .db
-        .get_schema_registry("{{project-name}}::modules::*")
+        .get_schema_registry("example::modules::*")
         .sync(&state.db)
         .await
         .expect("Schema sync failed");

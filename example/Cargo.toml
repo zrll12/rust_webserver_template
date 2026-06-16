@@ -1,9 +1,8 @@
 [workspace]
-members = [".", "ws-core"]
+members = [".", "ws-core", "src/modules/comment"]
 
 [package]
-name = "{{project-name}}"
-description = "{{project-description}}"
+name = "example"
 version = "0.1.0"
 edition = "2024"
 
@@ -40,8 +39,11 @@ diff = "0.1.13"
 futures = "0.3.32"
 shadow-rs = "1.7.1"
 thiserror = "2.0.18"
+bcrypt = "0.17"
+chrono = "0.4"
+base64 = "0.22"
 ws-core = { path = "ws-core" }
-
+comment-module = { path = "src/modules/comment" }
 
 [build-dependencies]
 shadow-rs = "1.7.1"

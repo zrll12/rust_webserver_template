@@ -1,14 +1,14 @@
 use axum::Router;
 use axum::routing::get;
-use shadow_rs::shadow;
 use serde::Serialize;
+use shadow_rs::shadow;
+use ws_core::state::AppState;
 
-pub fn all_routers() -> Router {
-    Router::new()
-        .route("/", get(ping))
+pub fn router() -> Router<AppState> {
+    Router::new().route("/", get(ping))
 }
 
-pub async fn ping() -> String {
+async fn ping() -> String {
     shadow!(build);
 
     let pong = Pong {
@@ -23,7 +23,7 @@ pub async fn ping() -> String {
 }
 
 #[derive(Serialize)]
-pub struct Pong {
+struct Pong {
     commit: String,
     branch: String,
     date: String,
