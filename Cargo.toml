@@ -37,7 +37,7 @@ diff = "0.1.13"
 futures = "0.3.32"
 shadow-rs = "1.7.1"
 thiserror = "2.0.18"
-thalos-core = { version = "0.1", features = [] }
+thalos-core = "0.1"
 
 #openapi (optional) — enable with --features openapi or swagger-ui
 utoipa = { version = "5", features = ["axum_extras"], optional = true }
