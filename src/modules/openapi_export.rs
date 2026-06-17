@@ -17,7 +17,7 @@ mod tests {
             .title(env!("CARGO_PKG_NAME"))
             .version(env!("CARGO_PKG_VERSION"))
             .build();
-        let openapi = ws_core::openapi::merge_modules(&modules, info);
+        let openapi = thalos_core::openapi::merge_modules(&modules, info);
         let json = openapi.to_json().expect("OpenAPI serialization failed");
 
         let output_path = std::env::var("OPENAPI_OUTPUT")

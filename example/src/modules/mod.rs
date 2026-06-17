@@ -1,4 +1,4 @@
-use ws_core::module::AppModule;
+use thalos_core::module::AppModule;
 
 pub mod ping;
 pub mod user;

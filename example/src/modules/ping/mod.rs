@@ -1,6 +1,6 @@
 use axum::Router;
-use ws_core::module::AppModule;
-use ws_core::state::AppState;
+use thalos_core::module::AppModule;
+use thalos_core::state::AppState;
 
 pub mod routes;
 

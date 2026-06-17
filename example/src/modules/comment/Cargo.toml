@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 # 局限说明：
-# 本 crate 通过 path 依赖主项目（example）中的 ws-core 层。
-# 若 ws-core 将来单独发布到 crates.io，只需替换为版本依赖即可独立分发。
-# 在同一 workspace 下使用时，编译缓存是共享的，无需重复编译 ws-core。
+# 本 crate 通过 path 依赖主项目（example）中的 thalos-core 层。
+# 若 thalos-core 将来单独发布到 crates.io，只需替换为版本依赖即可独立分发。
+# 在同一 workspace 下使用时，编译缓存是共享的，无需重复编译 thalos-core。
 #
 # 注意：comment 接口未做 token 鉴权，这是演示的有意为之。
 # 原因：TokenInfo 定义在主 crate 的 user 模块中，独立 crate 若依赖主 crate 会造成循环依赖。
@@ -16,7 +16,7 @@ edition = "2024"
 # 这两种方案都意味着相关模块也要独立成 crate，就不会出现循环依赖。
 
 [dependencies]
-ws-core = { path = "../../../ws-core" }
+thalos-core = { path = "../../../thalos-core" }
 
 axum = { version = "0.8.8" }
 sea-orm = { version = "2.0.0-rc.40", features = [

@@ -1,5 +1,5 @@
 [package]
-name = "ws-core"
+name = "thalos-core"
 version = "0.1.0"
 edition = "2024"
 

@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "ws-core", "src/modules/comment"]
+members = [".", "thalos-core", "src/modules/comment"]
 
 [package]
 name = "example"
@@ -42,7 +42,7 @@ thiserror = "2.0.18"
 bcrypt = "0.17"
 chrono = "0.4"
 base64 = "0.22"
-ws-core = { path = "ws-core" }
+thalos-core = { path = "thalos-core" }
 comment-module = { path = "src/modules/comment" }
 
 #openapi (optional)
@@ -50,8 +50,8 @@ utoipa = { version = "5", features = ["axum_extras"], optional = true }
 utoipa-swagger-ui = { version = "9", features = ["axum"], optional = true }
 
 [features]
-openapi = ["dep:utoipa", "ws-core/openapi"]
-swagger-ui = ["openapi", "dep:utoipa-swagger-ui", "ws-core/swagger-ui"]
+openapi = ["dep:utoipa", "thalos-core/openapi"]
+swagger-ui = ["openapi", "dep:utoipa-swagger-ui", "thalos-core/swagger-ui"]
 
 [build-dependencies]
 shadow-rs = "1.7.1"

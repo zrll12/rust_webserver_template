@@ -1,7 +1,12 @@
 [package]
-name = "ws-core"
+name = "thalos-core"
 version = "0.1.0"
 edition = "2024"
+description = "Core framework crate for the Thalos Axum+SeaORM web service scaffold"
+license = "MIT"
+repository = "https://github.com/zrll12/thalos"
+keywords = ["axum", "sea-orm", "web", "scaffold"]
+categories = ["web-programming::http-server"]
 
 [features]
 openapi = ["dep:utoipa"]

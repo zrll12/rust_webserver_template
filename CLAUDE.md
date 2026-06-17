@@ -1,4 +1,4 @@
-# rust_webserver_template — AI 协作指南
+# thalos — AI 协作指南
 
 完整使用说明见 [GUIDE.md](GUIDE.md)。本文件供 AI 辅助开发时参考，记录约定、精确 API 签名和边界。
 
@@ -6,7 +6,7 @@
 
 ## 项目定位
 
-Axum + SeaORM 的模块化 Web 服务脚手架（cargo-generate template）。用户 `cargo generate` 后只维护 `src/modules/` 下的业务模块，框架层（`ws-core/`、`src/main.rs`）随 template 更新，用户不直接修改。
+Axum + SeaORM 的模块化 Web 服务脚手架（cargo-generate template）。用户 `cargo generate` 后只维护 `src/modules/` 下的业务模块，框架层（`thalos-core` crate、`src/main.rs`）随 crate 版本更新，用户不直接修改。
 
 ---
 
@@ -14,7 +14,7 @@ Axum + SeaORM 的模块化 Web 服务脚手架（cargo-generate template）。�
 
 | 路径 | 职责 | 用户是否修改 |
 |---|---|---|
-| `ws-core/` | 框架基础设施：AppModule trait、AppState、AppError、config 工具（独立 crate） | 否 |
+| `thalos-core` (crates.io) | 框架基础设施：AppModule trait、AppState、AppError、config 工具（独立 crate，不在本地目录） | 否 |
 | `src/modules/mod.rs` | 模块注册表，`all_modules()` 返回所有模块 | **是，唯一必须改的框架侧文件** |
 | `src/modules/<name>/` | 业务模块，每个子目录完全独立 | 是 |
 | `src/main.rs` | 启动入口：logging、schema sync、模块初始化、router 组装 | 否 |
@@ -24,7 +24,7 @@ Axum + SeaORM 的模块化 Web 服务脚手架（cargo-generate template）。�
 
 ## 核心 API
 
-### AppModule trait（`ws-core/src/module.rs`）
+### AppModule trait（`thalos-core/src/module.rs`）
 
 ```rust
 pub trait AppModule: Send + Sync + 'static {
@@ -42,7 +42,7 @@ pub trait AppModule: Send + Sync + 'static {
 }
 ```
 
-### AppState（`ws-core/src/state.rs`）
+### AppState（`thalos-core/src/state.rs`）
 
 ```rust
 #[derive(Clone)]
@@ -58,7 +58,7 @@ impl AppState {
 }
 ```
 
-### ModuleExt extractor（`ws-core/src/extract.rs`）
+### ModuleExt extractor（`thalos-core/src/extract.rs`）
 
 ```rust
 pub struct ModuleExt<T>(pub Arc<T>);
@@ -66,7 +66,7 @@ pub struct ModuleExt<T>(pub Arc<T>);
 // 从 AppState::get_module::<T>() 取值，取不到时返回 AppError::NotFound
 ```
 
-### AppError（`ws-core/src/error.rs`）
+### AppError（`thalos-core/src/error.rs`）
 
 ```rust
 pub enum AppError {
@@ -79,7 +79,7 @@ pub enum AppError {
 }
 ```
 
-### get_config（`ws-core/src/config/mod.rs`）
+### get_config（`thalos-core/src/config/mod.rs`）
 
 ```rust
 pub fn get_config<T>(name: &str) -> T
@@ -101,14 +101,14 @@ src/modules/<name>/
 └── config.rs    模块私有配置，用 get_config("<name>") 读取（可选）
 ```
 
-正确的 import 路径（模板生成后 crate 名为项目名，ws-core 以 `ws_core` 引入）：
+正确的 import 路径（模板生成后 crate 名为项目名，thalos-core 以 `thalos_core` 引入）：
 
 ```rust
-use ws_core::module::AppModule;
-use ws_core::state::AppState;
-use ws_core::error::AppError;
-use ws_core::extract::ModuleExt;
-use ws_core::config::get_config;
+use thalos_core::module::AppModule;
+use thalos_core::state::AppState;
+use thalos_core::error::AppError;
+use thalos_core::extract::ModuleExt;
+use thalos_core::config::get_config;
 ```
 
 ### 服务注入模式
@@ -149,7 +149,7 @@ async fn handler(ModuleExt(svc): ModuleExt<MyService>, ...) -> Result<..., AppEr
 
 ## 禁止事项
 
-- 不在 `ws-core/` 中 import 任何 `src/modules/` 的类型
+- 不在 `thalos-core` crate 中 import 任何 `src/modules/` 的类型
 - 不跨模块直接调用函数，通过 `state.set_module`/`ModuleExt<T>` 通信
 - 不在 `modules/mod.rs` 之外注册模块
 - 不在 entity 文件中放业务逻辑

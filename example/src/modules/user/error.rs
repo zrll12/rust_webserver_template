@@ -1,5 +1,5 @@
 use thiserror::Error;
-use ws_core::error::AppError;
+use thalos_core::error::AppError;
 
 #[derive(Debug, Error)]
 pub enum UserError {

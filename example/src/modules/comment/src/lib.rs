@@ -1,5 +1,5 @@
 use axum::Router;
-use ws_core::{module::AppModule, state::AppState};
+use thalos_core::{module::AppModule, state::AppState};
 
 pub mod entity;
 pub mod error;

@@ -1,6 +1,6 @@
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
-use ws_core::{error::AppError, extract::ModuleExt, state::AppState};
+use thalos_core::{error::AppError, extract::ModuleExt, state::AppState};
 use super::service::{TokenInfo, UserService};
 
 /// 从请求头 `Authorization: Bearer <token>` 中提取并验证 token，返回用户信息。

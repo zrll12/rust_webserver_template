@@ -2,7 +2,7 @@ use axum::Router;
 use axum::routing::get;
 use serde::Serialize;
 use shadow_rs::shadow;
-use ws_core::state::AppState;
+use thalos_core::state::AppState;
 
 pub fn router() -> Router<AppState> {
     Router::new().route("/", get(ping))

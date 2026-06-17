@@ -5,7 +5,7 @@
 ## 快速开始
 
 ```bash
-cargo generate --git https://github.com/zrll12/rust_webserver_template.git
+cargo generate --git https://github.com/zrll12/thalos.git
 cd your_project
 cargo run
 ```
@@ -22,9 +22,9 @@ src/
 └── modules/
     ├── mod.rs               # ← 注册模块的唯一入口，你只需改这里
     └── ping/                # 内置示例模块
-ws-core/                     # 框架层（独立 crate），不需要修改
 config/
     core.toml                # 服务器、数据库、TLS、CORS 配置
+# thalos-core 是框架层 crate，来自 crates.io，无本地源码目录
 ```
 
 **原则：框架层不知道业务层的存在。** 框架只通过 `AppModule` trait 调用业务代码，不 import 任何业务类型。
@@ -52,8 +52,8 @@ src/modules/your_module/
 ```rust
 // src/modules/your_module/mod.rs
 use axum::Router;
-use ws_core::module::AppModule;
-use ws_core::state::AppState;
+use thalos_core::module::AppModule;
+use thalos_core::state::AppState;
 
 pub mod routes;
 
@@ -68,7 +68,7 @@ impl AppModule for YourModule {
 **需要向其他模块暴露服务时，实现 `init`：**
 
 ```rust
-use ws_core::error::AppError;
+use thalos_core::error::AppError;
 
 impl AppModule for YourModule {
     fn name(&self) -> &'static str { "your_module" }
@@ -86,7 +86,7 @@ impl AppModule for YourModule {
 **在路由 handler 中消费服务：**
 
 ```rust
-use ws_core::extract::ModuleExt;
+use thalos_core::extract::ModuleExt;
 
 async fn handler(
     ModuleExt(svc): ModuleExt<YourService>,
@@ -212,7 +212,7 @@ impl From<YourError> for AppError {
 // src/modules/your_module/config.rs
 use serde::{Deserialize, Serialize};
 use serde_inline_default::serde_inline_default;
-use ws_core::config::get_config;
+use thalos_core::config::get_config;
 
 #[serde_inline_default]
 #[derive(Serialize, Deserialize, Clone, Debug)]

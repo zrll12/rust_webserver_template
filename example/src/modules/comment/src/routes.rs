@@ -2,7 +2,7 @@ use axum::{Json, Router, extract::State, routing::{get, post}};
 use sea_orm::{ActiveModelTrait, EntityTrait, Set};
 use sea_orm::ActiveValue::NotSet;
 use serde::{Deserialize, Serialize};
-use ws_core::{error::AppError, state::AppState};
+use thalos_core::{error::AppError, state::AppState};
 use crate::entity::{ActiveModel, Entity};
 
 pub fn router() -> Router<AppState> {

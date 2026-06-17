@@ -1,6 +1,6 @@
 use axum::{Json, Router, routing::{get, post}};
 use serde::{Deserialize, Serialize};
-use ws_core::{error::AppError, extract::ModuleExt, state::AppState};
+use thalos_core::{error::AppError, extract::ModuleExt, state::AppState};
 use super::{error::UserError, service::{TokenInfo, UserService}};
 
 pub fn router() -> Router<AppState> {

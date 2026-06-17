@@ -24,7 +24,7 @@ static OPENAPI_JSON: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 
 #[tokio::main]
 async fn main() {
-    let state = ws_core::state::AppState::new();
+    let state = thalos_core::state::AppState::new();
 
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(&state.core_config.trace_level));
@@ -80,7 +80,7 @@ async fn main() {
             .title(env!("CARGO_PKG_NAME"))
             .version(env!("CARGO_PKG_VERSION"))
             .build();
-        let openapi = ws_core::openapi::merge_modules(&module_list, info);
+        let openapi = thalos_core::openapi::merge_modules(&module_list, info);
         let json = openapi.to_json().expect("OpenAPI serialization failed");
         let json_str: &'static str = OPENAPI_JSON.get_or_init(|| json);
 
