@@ -1,11 +1,8 @@
 /target
-/migration/target/
+thalos-core/target/
+example/target/
 /config/
 /logs/
 
-#idea
-/.idea/.gitignore
-/.idea/modules.xml
-/.idea/vcs.xml
-/.idea/web_template.iml
-example/target/
+# IDE
+.idea/
