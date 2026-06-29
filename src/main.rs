@@ -1,8 +1,11 @@
 use axum::Router;
 use axum::extract::DefaultBodyLimit;
 use axum::http::HeaderValue;
+use axum_server::Handle;
 use axum_server::tls_rustls::RustlsConfig;
 use std::net::SocketAddr;
+use std::time::Duration;
+use thalos_core::module::AppModule;
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::cors::CorsLayer;
@@ -130,6 +133,9 @@ async fn main() {
     let addr: SocketAddr = state.core_config.server_addr.parse().unwrap();
     info!("Listening: {addr}");
 
+    let handle = Handle::new();
+    tokio::spawn(shutdown_handler(handle.clone(), module_list));
+
     if state.core_config.tls {
         debug!("HTTPS enabled.");
         let tls_config = RustlsConfig::from_pem_file(
@@ -139,14 +145,50 @@ async fn main() {
         .await
         .unwrap();
         axum_server::bind_rustls(addr, tls_config)
+            .handle(handle)
             .serve(app.into_make_service())
             .await
             .unwrap();
     } else {
         warn!("HTTPS disabled.");
         axum_server::bind(addr)
+            .handle(handle)
             .serve(app.into_make_service())
             .await
             .unwrap();
     }
+}
+
+async fn shutdown_handler(handle: Handle, modules: Vec<Box<dyn AppModule>>) {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install SIGTERM handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+
+    info!("Shutdown signal received, draining connections...");
+    handle.graceful_shutdown(Some(Duration::from_secs(30)));
+
+    // call shutdown hooks in reverse init order
+    for m in modules.iter().rev() {
+        m.shutdown();
+    }
+
+    info!("Shutdown complete.");
 }

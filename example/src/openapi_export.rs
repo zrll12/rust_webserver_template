@@ -1,11 +1,6 @@
-/// 离线导出 OpenAPI spec，不需要运行服务器和数据库。
-///
-/// 运行方式：
-///   cargo test --features openapi export_openapi -- --nocapture
-///
-/// 默认输出到项目根目录的 openapi.json。
-/// 可通过环境变量 OPENAPI_OUTPUT 覆盖输出路径：
-///   OPENAPI_OUTPUT=./docs/api.json cargo test --features openapi export_openapi
+/// Exports OpenAPI spec offline without starting the server or database.
+/// Usage: `cargo test --features openapi export_openapi -- --nocapture`
+/// Override output path with `OPENAPI_OUTPUT` env var (default: openapi.json).
 #[cfg(all(test, feature = "openapi"))]
 mod tests {
     use utoipa::openapi::InfoBuilder;

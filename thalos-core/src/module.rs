@@ -12,6 +12,9 @@ pub trait AppModule: Send + Sync + 'static {
         Ok(())
     }
 
+    /// Called on shutdown in reverse `all_modules()` order.
+    fn shutdown(&self) {}
+
     /// Returns this module's OpenAPI spec (paths + schemas). Override as needed.
     #[cfg(feature = "openapi")]
     fn openapi(&self) -> utoipa::openapi::OpenApi {
