@@ -93,9 +93,9 @@ async fn main() {
 
         #[cfg(feature = "swagger-ui")]
         {
-            use utoipa_swagger_ui::SwaggerUi;
+            use utoipa_swagger_ui::{Config, SwaggerUi};
             router = router.merge(
-                SwaggerUi::new("/swagger-ui").url("/openapi.json", utoipa::openapi::OpenApi::default()),
+                SwaggerUi::new("/swagger-ui").config(Config::new(["/openapi.json"])),
             );
             info!("Swagger UI available at /swagger-ui");
         }
