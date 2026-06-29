@@ -1,9 +1,10 @@
-use thalos_core::module::AppModule;
+use thalos_core::module::ModuleEntry;
 
 pub mod ping;
 
-pub fn all_modules() -> Vec<Box<dyn AppModule>> {
+pub fn all_modules() -> Vec<ModuleEntry> {
     vec![
-        Box::new(ping::PingModule),
+        ping::PingModule.into(),
+        // custom prefix example: (ping::PingModule, "info").into(),
     ]
 }

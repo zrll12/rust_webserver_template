@@ -2,7 +2,7 @@
 
 [package]
 name = "thalos-core"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 description = "Core framework crate for the Thalos Axum+SeaORM web service scaffold"
 license = "MIT"

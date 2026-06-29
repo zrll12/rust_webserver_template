@@ -1,12 +1,12 @@
-use thalos_core::module::AppModule;
+use thalos_core::module::ModuleEntry;
 
 pub mod ping;
 pub mod user;
 
-pub fn all_modules() -> Vec<Box<dyn AppModule>> {
+pub fn all_modules() -> Vec<ModuleEntry> {
     vec![
-        Box::new(ping::PingModule),
-        Box::new(user::UserModule),
-        Box::new(comment_module::CommentModule),
+        ping::PingModule.into(),
+        user::UserModule.into(),
+        comment_module::CommentModule.into(),
     ]
 }

@@ -5,7 +5,7 @@ use axum_server::Handle;
 use axum_server::tls_rustls::RustlsConfig;
 use std::net::SocketAddr;
 use std::time::Duration;
-use thalos_core::module::AppModule;
+use thalos_core::module::ModuleEntry;
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::cors::CorsLayer;
@@ -62,15 +62,16 @@ async fn main() {
 
     // init modules
     let module_list = modules::all_modules();
-    for m in &module_list {
-        m.init(&state)
-            .unwrap_or_else(|e| panic!("{} init failed: {}", m.name(), e));
+    for e in &module_list {
+        e.module
+            .init(&state)
+            .unwrap_or_else(|err| panic!("{} init failed: {}", e.module.name(), err));
     }
 
     // build router
     #[allow(unused_mut)]
-    let mut router = module_list.iter().fold(Router::new(), |r, m| {
-        r.nest(&format!("/{}", m.name()), m.routes())
+    let mut router = module_list.iter().fold(Router::new(), |r, e| {
+        r.nest(&format!("/{}", e.prefix), e.module.routes())
     });
 
     // build openapi feature
@@ -159,7 +160,7 @@ async fn main() {
     }
 }
 
-async fn shutdown_handler(handle: Handle<SocketAddr>, modules: Vec<Box<dyn AppModule>>) {
+async fn shutdown_handler(handle: Handle<SocketAddr>, module_list: Vec<ModuleEntry>) {
     let ctrl_c = async {
         tokio::signal::ctrl_c()
             .await
@@ -185,9 +186,9 @@ async fn shutdown_handler(handle: Handle<SocketAddr>, modules: Vec<Box<dyn AppMo
     info!("Shutdown signal received, draining connections...");
     handle.graceful_shutdown(Some(Duration::from_secs(30)));
 
-    // call shutdown hooks in reverse init order
-    for m in modules.iter().rev() {
-        m.shutdown();
+    for e in module_list.iter().rev() {
+        info!("Shutting down module: {}", e.module.name());
+        e.module.shutdown();
     }
 
     info!("Shutdown complete.");
