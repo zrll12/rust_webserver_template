@@ -17,8 +17,9 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Registry, fmt};
 
 mod modules;
+#[cfg(all(test, feature = "openapi"))]
+mod openapi_export;
 
-/// 启动时构建一次，序列化为 JSON 字符串后存入 OnceLock，运行期直接 clone Arc<str>。
 #[cfg(feature = "openapi")]
 static OPENAPI_JSON: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 
@@ -48,7 +49,7 @@ async fn main() {
         .with(file_layer)
         .init();
 
-    // schema-sync: 根据 entity 定义自动建表/加列
+    // schema sync
     state
         .db
         .get_schema_registry("{{project-name}}::modules::*")
@@ -56,20 +57,20 @@ async fn main() {
         .await
         .expect("Schema sync failed");
 
-    // 初始化所有模块（按声明顺序，模块在此调用 state.set_module(...)）
+    // init modules
     let module_list = modules::all_modules();
     for m in &module_list {
         m.init(&state)
             .unwrap_or_else(|e| panic!("{} init failed: {}", m.name(), e));
     }
 
-    // 组装路由：每个模块挂载到 /<name>
+    // build router
     #[allow(unused_mut)]
     let mut router = module_list.iter().fold(Router::new(), |r, m| {
         r.nest(&format!("/{}", m.name()), m.routes())
     });
 
-    // openapi feature：构建文档并挂载端点（仅一次序列化，运行期零分配）
+    // build openapi feature
     #[cfg(feature = "openapi")]
     {
         use utoipa::openapi::InfoBuilder;
