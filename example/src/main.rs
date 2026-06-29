@@ -159,7 +159,7 @@ async fn main() {
     }
 }
 
-async fn shutdown_handler(handle: Handle, modules: Vec<Box<dyn AppModule>>) {
+async fn shutdown_handler(handle: Handle<SocketAddr>, modules: Vec<Box<dyn AppModule>>) {
     let ctrl_c = async {
         tokio::signal::ctrl_c()
             .await
