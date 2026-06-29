@@ -17,7 +17,7 @@ Axum + SeaORM 的模块化 Web 服务脚手架（cargo-generate template）。�
 | `thalos-core` (crates.io) | 框架基础设施：AppModule trait、AppState、AppError、config 工具（独立 crate，不在本地目录） | 否 |
 | `src/modules/mod.rs` | 模块注册表，`all_modules()` 返回所有模块 | **是，唯一必须改的框架侧文件** |
 | `src/modules/<name>/` | 业务模块，每个子目录完全独立 | 是 |
-| `src/main.rs` | 启动入口：logging、schema sync、模块初始化、router 组装 | 否 |
+| `src/main.rs` | 启动入口：logging、模块初始化、router 组装 | 否 |
 | `config/` | TOML 配置文件，运行时读取，首次启动自动生成 | 是（运维配置） |
 
 ---
@@ -126,6 +126,28 @@ async fn handler(ModuleExt(svc): ModuleExt<MyService>, ...) -> Result<..., AppEr
 }
 ```
 
+### Schema Sync 模式
+
+每个模块在 `init` 中负责同步自己的 entity，使用 `get_schema_builder()` 手动注册：
+
+```rust
+fn init(&self, state: &AppState) -> Result<(), AppError> {
+    futures::executor::block_on(
+        state
+            .db
+            .get_schema_builder()
+            .register(entity::foo::Entity)
+            .register(entity::bar::Entity)
+            .sync(&state.db),
+    )
+    .expect("schema sync failed");
+    Ok(())
+}
+```
+
+- 只注册本模块自己的 entity，外部 crate 模块同样在自己的 `init` 里调用
+- `#[sea_orm::model]` 宏仍然需要（用于派生 ORM 相关 trait），但不依赖全局 inventory 做 sync
+
 ### 模块注册顺序
 
 `all_modules()` 的顺序即 `init()` 的执行顺序。模块 B 的 `init` 依赖模块 A 注册的服务时，A 必须排在 B 前面。
@@ -135,8 +157,8 @@ async fn handler(ModuleExt(svc): ModuleExt<MyService>, ...) -> Result<..., AppEr
 ## 数据库（Entity First）
 
 - sea-orm 2.x entity-first，**不存在 migration crate**
-- entity 带 `#[sea_orm::model]` 宏，编译时自动注册到全局 inventory
-- 启动时 schema sync 增量执行 DDL，只增不删（index 除外）
+- entity 带 `#[sea_orm::model]` 宏（派生 ORM trait 所需）
+- schema sync 在各模块的 `init` 中显式调用，增量执行 DDL，只增不删（index 除外）
 
 ---
 

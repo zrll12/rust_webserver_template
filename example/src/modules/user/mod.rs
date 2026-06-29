@@ -22,6 +22,14 @@ impl AppModule for UserModule {
     }
 
     fn init(&self, state: &AppState) -> Result<(), AppError> {
+        futures::executor::block_on(
+            state
+                .db
+                .get_schema_builder()
+                .register(entity::user::Entity)
+                .sync(&state.db),
+        )
+        .expect("user schema sync failed");
         state.set_module(UserService::new(state.db.clone()));
         Ok(())
     }

@@ -16,5 +16,15 @@ impl AppModule for CommentModule {
         routes::router()
     }
 
-
+    fn init(&self, state: &AppState) -> Result<(), thalos_core::error::AppError> {
+        futures::executor::block_on(
+            state
+                .db
+                .get_schema_builder()
+                .register(entity::Entity)
+                .sync(&state.db),
+        )
+        .expect("comment schema sync failed");
+        Ok(())
+    }
 }

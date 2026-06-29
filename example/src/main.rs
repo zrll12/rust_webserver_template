@@ -52,14 +52,6 @@ async fn main() {
         .with(file_layer)
         .init();
 
-    // schema sync
-    state
-        .db
-        .get_schema_registry("example::modules::*")
-        .sync(&state.db)
-        .await
-        .expect("Schema sync failed");
-
     // init modules
     let module_list = modules::all_modules();
     for e in &module_list {
