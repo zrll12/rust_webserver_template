@@ -4,8 +4,8 @@ use axum::http::request::Parts;
 use crate::error::AppError;
 use crate::state::AppState;
 
-/// 从 AppState 的 module extension map 中提取服务。
-/// 使用方式：`ModuleExt(svc): ModuleExt<MyService>`
+/// Extracts a service from AppState's module extension map.
+/// Usage: `ModuleExt(svc): ModuleExt<MyService>`
 pub struct ModuleExt<T>(pub Arc<T>);
 
 impl<T> FromRequestParts<AppState> for ModuleExt<T>
