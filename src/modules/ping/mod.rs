@@ -1,6 +1,6 @@
 use axum::Router;
-use thalos_core::module::AppModule;
-use thalos_core::state::AppState;
+use crate::module::AppModule;
+use crate::state::AppState;
 
 pub mod routes;
 

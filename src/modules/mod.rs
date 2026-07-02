@@ -1,5 +1,6 @@
-use thalos_core::module::ModuleEntry;
+use crate::module::ModuleEntry;
 
+pub mod core;
 pub mod ping;
 
 pub fn all_modules() -> Vec<ModuleEntry> {

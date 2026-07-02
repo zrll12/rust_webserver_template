@@ -34,19 +34,16 @@ sea-orm = { version = "2.0.0-rc.40", features = [
 tokio = { version = "1.50.0", features = ["full"] }
 dashmap = "6"
 diff = "0.1.13"
-futures = "0.3.32"
 shadow-rs = "1.7.1"
 thiserror = "2.0.18"
-thalos-core = "0.3"
 
 #openapi (optional) — enable with --features openapi or swagger-ui
 utoipa = { version = "5", features = ["axum_extras"], optional = true }
 utoipa-swagger-ui = { version = "9", features = ["axum"], optional = true }
 
 [features]
-openapi = ["dep:utoipa", "thalos-core/openapi"]
-swagger-ui = ["openapi", "dep:utoipa-swagger-ui", "thalos-core/swagger-ui"]
-
+openapi = ["dep:utoipa"]
+swagger-ui = ["openapi", "dep:utoipa-swagger-ui"]
 
 [build-dependencies]
 shadow-rs = "1.7.1"

@@ -1,11 +1,9 @@
 use std::sync::Arc;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
-use crate::error::AppError;
+use crate::modules::core::AppError;
 use crate::state::AppState;
 
-/// Extracts a service from AppState's module extension map.
-/// Usage: `ModuleExt(svc): ModuleExt<MyService>`
 pub struct ModuleExt<T>(pub Arc<T>);
 
 impl<T> FromRequestParts<AppState> for ModuleExt<T>

@@ -5,7 +5,6 @@ use axum_server::Handle;
 use axum_server::tls_rustls::RustlsConfig;
 use std::net::SocketAddr;
 use std::time::Duration;
-use thalos_core::module::ModuleEntry;
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::cors::CorsLayer;
@@ -19,7 +18,17 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Registry, fmt};
 
+use crate::module::ModuleEntry;
+use crate::state::AppState;
+
+mod config;
+mod extract;
+mod module;
 mod modules;
+mod state;
+
+#[cfg(feature = "openapi")]
+mod openapi;
 #[cfg(all(test, feature = "openapi"))]
 mod openapi_export;
 
@@ -28,7 +37,7 @@ static OPENAPI_JSON: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 
 #[tokio::main]
 async fn main() {
-    let state = thalos_core::state::AppState::new();
+    let state = AppState::new().await;
 
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(&state.core_config.trace_level));
@@ -52,7 +61,6 @@ async fn main() {
         .with(file_layer)
         .init();
 
-    // init modules
     let module_list = modules::all_modules();
     for e in &module_list {
         e.module
@@ -60,13 +68,13 @@ async fn main() {
             .unwrap_or_else(|err| panic!("{} init failed: {}", e.module.name(), err));
     }
 
-    // build router
+    state.sync_schema().await;
+
     #[allow(unused_mut)]
     let mut router = module_list.iter().fold(Router::new(), |r, e| {
         r.nest(&format!("/{}", e.prefix), e.module.routes())
     });
 
-    // build openapi feature
     #[cfg(feature = "openapi")]
     {
         use utoipa::openapi::InfoBuilder;
@@ -77,16 +85,19 @@ async fn main() {
             .title(env!("CARGO_PKG_NAME"))
             .version(env!("CARGO_PKG_VERSION"))
             .build();
-        let openapi = thalos_core::openapi::merge_modules(&module_list, info);
+        let openapi = openapi::merge_modules(&module_list, info);
         let json = openapi.to_json().expect("OpenAPI serialization failed");
         let json_str: &'static str = OPENAPI_JSON.get_or_init(|| json);
 
         router = router.route(
             "/openapi.json",
-            get(move || async move { (
-                [(axum::http::header::CONTENT_TYPE, "application/json")],
-                json_str,
-            ).into_response() }),
+            get(move || async move {
+                (
+                    [(axum::http::header::CONTENT_TYPE, "application/json")],
+                    json_str,
+                )
+                    .into_response()
+            }),
         );
 
         info!("OpenAPI spec available at /openapi.json");
